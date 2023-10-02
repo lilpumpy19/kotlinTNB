@@ -11,10 +11,10 @@ import org.springframework.test.web.servlet.get
 
 @SpringBootTest
 @AutoConfigureMockMvc
-internal class BankControllerTest{
+internal class BankControllerTest {
 
     @Autowired
-    lateinit var mockMvc:MockMvc
+    lateinit var mockMvc: MockMvc
 
     @Test
     internal fun test() {
@@ -24,5 +24,20 @@ internal class BankControllerTest{
                 status { isOk() }
                 content { contentType(MediaType.APPLICATION_JSON) }
             }
+    }
+
+    @Test
+    internal fun getOneBank() {
+        val accountNumber = 123
+
+        mockMvc.get("/api/banks/$accountNumber")
+            .andDo { print() }
+            .andExpect {
+                status { isOk() }
+                content { contentType(MediaType.APPLICATION_JSON) }
+                jsonPath("$.trust") { value(0.1) }
+                jsonPath("$.transactionFee") { value(12) }
+            }
+
     }
 }
