@@ -8,18 +8,14 @@ import org.springframework.beans.factory.annotation.Autowired
 import org.springframework.boot.test.autoconfigure.web.servlet.AutoConfigureMockMvc
 import org.springframework.boot.test.context.SpringBootTest
 import org.springframework.http.MediaType
-import org.springframework.test.web.servlet.MockMvc
-import org.springframework.test.web.servlet.get
-import org.springframework.test.web.servlet.post
+import org.springframework.test.web.servlet.*
 
 @SpringBootTest
 @AutoConfigureMockMvc
 internal class BankControllerTest @Autowired constructor(
-     val mockMvc: MockMvc,
-     val objectMapper: ObjectMapper
+    val mockMvc: MockMvc,
+    val objectMapper: ObjectMapper
 ) {
-
-
 
 
     @Test
@@ -52,30 +48,61 @@ internal class BankControllerTest @Autowired constructor(
         //given
         val newBank = Bank("qwert", 1.0, 2)
         //when
-        var perfomPost=mockMvc.post("/api/banks") {
+        var perfomPost = mockMvc.post("/api/banks") {
             contentType = MediaType.APPLICATION_JSON
             content = objectMapper.writeValueAsString(newBank)
         }
 
-            //then
-            perfomPost
-                .andDo { print() }
-                .andExpect {
+        //then
+        perfomPost
+            .andDo { print() }
+            .andExpect {
                 status { isCreated() }
-                    content { contentType(MediaType.APPLICATION_JSON) }
-                    jsonPath("$.accountNumber"){value("qwert")}
+                content { contentType(MediaType.APPLICATION_JSON) }
+                jsonPath("$.accountNumber") { value("qwert") }
             }
     }
 
     @Test
     internal fun postBank1() {          //the number already exists
-        val invalidBank = Bank("123",0.1,0)
+        val invalidBank = Bank("123", 0.1, 0)
 
-        var perfomPost=mockMvc.post("/api/banks") {
+        var perfomPost = mockMvc.post("/api/banks") {
             contentType = MediaType.APPLICATION_JSON
             content = objectMapper.writeValueAsString(invalidBank)
         }
         perfomPost.andDo { print() }
             .andExpect { status { isBadRequest() } }
+    }
+
+    @Test
+    internal fun patchBank() {
+        val updatedBank = Bank("123", 0.1, 0)
+        val perfomPatch = mockMvc.patch("/api/banks") {
+            contentType = MediaType.APPLICATION_JSON
+            content = objectMapper.writeValueAsString(updatedBank)
+        }
+        perfomPatch.andDo { print() }
+            .andExpect {
+                status { isOk() }
+                content {
+                    contentType(MediaType.APPLICATION_JSON)
+                    json(objectMapper.writeValueAsString(updatedBank))
+                }
+
+            }
+
+    }
+
+    @Test
+    internal fun deleteBank() {
+        val accountNumber = 123
+
+        mockMvc.delete("/api/banks/$accountNumber")
+            .andDo { print() }
+            .andExpect {
+                status { isNoContent() }
+            }
+
     }
 }
